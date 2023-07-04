@@ -1,7 +1,19 @@
 // import React from 'react'
-import Destinations from "../components/Destinations"
+import Hero from '../components/Hero'
+import Header from '../components/Header';
+
 function HomeScreen() {
-  return <Destinations/ >
+
+  return (
+
+    
+    <>
+        <Header />
+        <Hero />
+    </>
+)
+    
+  
 }
 
 export default HomeScreen

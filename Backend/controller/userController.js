@@ -2,7 +2,26 @@ import asyncHandler from "express-async-handler"
 import User from "../models/userModel.js"
 import generateToken from "../util/generateTokens.js"
 
+const Authuser = asyncHandler(async (req, res) => {
+  
+   const { email, password } = req.body;
 
+   const user = await User.findOne({ email });
+ 
+   if (user && (await user.matchPassword(password))) {
+      generateToken( user._id);
+      
+ 
+     res.json({
+       _id: user._id,
+       name: user.name,
+       email: user.email,
+     });
+   } else {
+     res.status(401);
+     throw new Error('Invalid email or password');
+   }
+ });
 
 
 const registerUser=asyncHandler(async(req,res)=>{
@@ -10,7 +29,7 @@ const registerUser=asyncHandler(async(req,res)=>{
    const {name,email,password}=req.body
 
   const userExist=await User.findOne({email})
-
+ 
   if( userExist){
    res.status(400)
    throw new Error("User Already Exist..")
@@ -73,7 +92,7 @@ const updateUserProfile=asyncHandler(async(req,res)=>{
       const updatedUser =  await user.save()
 
    res.status(200).json({
-      id:updatedUser._id,
+      _id:updatedUser._id,
       name:updatedUser.name,
       email:updatedUser.email
    })
@@ -106,32 +125,7 @@ const logoutUser=asyncHandler(async(req,res)=>{
 
 
 
- const Authuser = asyncHandler(async(req,res)=>{
-
-   const {email,password}=req.body
-
-   const user=await User.findOne({email})
-   if( user && (await user.matchPassword(password)) ){
-
-   const token = generateToken(user._id);
-   
-   res.cookie('jwt', token, {
-     httpOnly: true,
-     secure: process.env.NODE_ENV !== 'development',
-     sameSite: 'strict',
-     maxAge: 30 * 24 * 60 * 60 * 1000
-   });
-   res.status(200).json({
-      id:user._id,
-      name:user.name,
-      email:user.email
-   })
-  }else{
-   res.status(401)
-   throw new Error("Invalid UserName or Password")
-  }
-
- })
+ 
 
 
  export {Authuser,logoutUser,updateUserProfile,getUserProfile,registerUser}
