@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Form, Button } from 'react-bootstrap';
-import FormContainer from '../../components/FormContainer';
-// import { Link } from 'react-router-dom';
+import { Form, Button, Row, Col } from 'react-bootstrap';
+import FormContainer from '../components/FormContainer';
+import { Link } from 'react-router-dom';
 import {useDispatch,useSelector} from 'react-redux';
 import {toast} from 'react-toastify'
-import Loader from "../../components/Loader";
-import { useRegisterMutation } from '../../slices/usersApiSlice';
-import { setCredentials } from '../../slices/authSlice';
+import Loader from "../components/Loader";
+import { useRegisterMutation } from '../slices/usersApiSlice';
+import { setCredentials } from '../slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 
-const Addusers = () => {
+const RegisterScreen = () => {
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -24,7 +24,14 @@ const Addusers = () => {
 
     const {userInfo} = useSelector((state)=>state.auth);
 
-   
+    useEffect(()=>{
+      if (userInfo){
+          navigate('/admins/all-users')
+      }else{
+        console.log('userinfo is empty');
+      }
+  },[navigate,userInfo])
+  
     
   
     const submitHandler = async (e) => {
@@ -39,7 +46,7 @@ const Addusers = () => {
           console.log(res,'this is res');
             dispatch(setCredentials({ ...res }));
             console.log('underdis');
-            navigate('/admin/all-users');
+            navigate('/admins/all-users');
         } catch (err) {
           toast.error(err?.data?.message || err.error);
           
@@ -49,7 +56,7 @@ const Addusers = () => {
     };
     return (
       <FormContainer>
-        <h1>Add user!</h1>
+        <h1>Register</h1>
         <Form onSubmit={submitHandler}>
           <Form.Group className='my-2' controlId='name'>
             <Form.Label>Name</Form.Label>
@@ -93,15 +100,19 @@ const Addusers = () => {
           {isLoading && <Loader />  }
   
           <Button type='submit' variant='primary' className='mt-3'>
-            Add
+            Register
           </Button>
   
           
         </Form>
   
-        
+        <Row className='py-3'>
+          <Col>
+            Already have an account? <Link to={`/login`}>Login</Link>
+          </Col>
+        </Row>
       </FormContainer>
     );
   };
   
-  export default Addusers;
+  export default RegisterScreen;

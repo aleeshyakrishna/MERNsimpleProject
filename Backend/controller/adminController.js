@@ -6,22 +6,45 @@ import User from '../models/userModel.js';
 // import generateToken from "../util/generateTokens";
 
 const Authadmin = asyncHandler(async(req,res)=>{
-   
+    try{
+        console.log("hiiiiiiiiiiiiiiiii");
     const { email, password } = req.body;
 
    const admin = await Admin.findOne({ email });
 
-   if(admin && (await admin.matchPassword(password))){
-            generateToken(admin._id);
+    console.log(admin,"admins");
 
+   if(admin && (await admin.matchPassword(password))){
+    const Id=admin._id;
+    // console.log(Id,"admins id,,,,,,,,,,,,,,,,");
+    // console.log('uirgdhihoh');
+    const token = generateToken(Id);
+
+    res.cookie('jwt', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== 'development',
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000
+      });
+
+    console.log();
             res.json({
                 _id:admin._id,
                 name:admin.name,
                 email:admin.email
             });
-   }else{
-    res.status(401);
+    }
+    else{
+        const err="not exists"
+        res.json()
+    }
+   
+   }catch(err){
+    console.log("<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(err);
+    res.json(err)
     throw new Error('Invalid userid or email id')
+    
    }
     
 })
@@ -35,15 +58,17 @@ const registerAdmin = asyncHandler(async(req,res)=>{
         throw new Error('admin already registerd')
     }
 
-    const admin= Admin.create({
+    const admin=await Admin.create({
         name,
         email,
         password
     })
 
     if(admin){
+        console.log(admin._id,"thisssssssss");
         const token=generateToken(admin._id)
-
+        
+        
         res.cookie('jwt', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV !== 'development',
@@ -51,9 +76,7 @@ const registerAdmin = asyncHandler(async(req,res)=>{
             maxAge: 30 * 24 * 60 * 60 * 1000
           });
           res.status(201).json({
-             id:admin._id,
-             name:admin.name,
-             email:admin.email
+            mess:"Admin Registered successfully!"
           })
          }else{
           res.status(400)
@@ -77,7 +100,9 @@ const adminLogout = asyncHandler(async(req,res)=>{
 const allUsers = asyncHandler(async(req,res)=>{
     const users= await User.find()
     if(users){
-        res.status(200).json({users})
+
+        console.log(users);
+        res.status(200).json(users)
     }
 })
 
@@ -129,25 +154,58 @@ const addUser = asyncHandler(async(req,res)=>{
        }
 })
 
-const deleteUser = asyncHandler(async(req,res)=>{
+const deleteUser = async (req,res) => {
     try {
-        const Id= req.body;
-        const userExist = User.findOne({Id})
-        if(userExist){
-            const deletedUser = await User.findByIdAndDelete(id);
-            if(deletedUser){
-                res.json('deleted user!')
-            }else{
-                res.json(401).json("try again later")
-            }
-        }else{
-            res.status(401).json("user not exist");
-        }
-    } catch (err) {
-        console.log(err)
+    console.log("iuyiyiyiyoyo");
+        await User.deleteOne({ _id: req.params.id});
+        res.status(200).json({ message: "User deleted successfully"})
+    } catch (error) {
+        res.status(409).json({ message: error.message});
     }
-})
+
+
+}
+const editUser=(req,res)=>{
+    console.log("hellow");
+    console.log(req.body,"body");
+    try{
+
+        const{email,name}=req.body
+
+        User.findOneAndUpdate({_id:req.params.id},{$set:{
+           email,name
+        }}).then((result) => {
+          
+            res.json(result)
+            
+        }).catch((err) => {
+            
+            res.json(err)
+            
+        });
+        
+    }
+    catch(err){
+        res.json(err)
+        
+    }
+    
+
+}
+
+const getUserData=(req,res)=>{
+
+    User.findOne({_id:req.params.id}).then(response=>{
+        console.log('////////oij/')+
+        
+        console.log(response);
+        res.json(response)
+    }).catch(err=>{
+        res.json(err)
+    })
+
+}
 
 
 
-export {Authadmin,registerAdmin,adminLogout,allUsers,getSingleUser,addUser,deleteUser}
+export {Authadmin,registerAdmin,adminLogout,allUsers,getSingleUser,addUser,deleteUser,editUser,getUserData}

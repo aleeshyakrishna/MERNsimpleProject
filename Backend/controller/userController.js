@@ -3,16 +3,21 @@ import User from "../models/userModel.js"
 import generateToken from "../util/generateTokens.js"
 
 const Authuser = asyncHandler(async (req, res) => {
-  
+  res.json("ok")
    const { email, password } = req.body;
 
    const user = await User.findOne({ email });
  
    if (user && (await user.matchPassword(password))) {
-      generateToken( user._id);
-      
- 
-     res.json({
+     const token= generateToken( user._id);
+      res.cookie('jwt', token, {
+         httpOnly: true,
+         secure: process.env.NODE_ENV !== 'development',
+         sameSite: 'strict',
+         maxAge: 30 * 24 * 60 * 60 * 1000
+       });
+      console.log("generated jwt");
+     res.status(200).json({
        _id: user._id,
        name: user.name,
        email: user.email,
@@ -45,6 +50,7 @@ const registerUser=asyncHandler(async(req,res)=>{
 
    
    const token = generateToken(user._id);
+   
    
    res.cookie('jwt', token, {
      httpOnly: true,
